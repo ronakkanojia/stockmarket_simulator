@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Options Trading Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Terminal Simulator</h1>
+        <div class="portfolio-summary">
+            <span>Buying Power: <strong id="cash-balance">₹--</strong></span>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <div class="top-row">
+            <div class="panel chart-panel">
+                <div class="panel-header">
+                    <input type="text" id="ticker-input" value="SPY" placeholder="Ticker (e.g., SPY)">
+                    <button id="load-chart-btn">Load Chart</button>
+                </div>
+                <div id="tvchart"></div>
+            </div>
+
+            <div class="panel order-panel">
+                <h3>Order Ticket</h3>
+                <div class="form-group">
+                    <label>Action</label>
+                    <select id="order-action">
+                        <option value="BUY">Buy</option>
+                        <option value="SELL">Sell (Write)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="order-type">
+                        <option value="CALL">Call</option>
+                        <option value="PUT">Put</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Strike</label>
+                    <input type="number" id="order-strike" placeholder="e.g., 500">
+                </div>
+                <div class="form-group">
+                    <label>Expiry (YYYY-MM-DD)</label>
+                    <input type="text" id="order-expiry" placeholder="2024-12-20">
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="order-qty" value="1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Premium Price (₹)</label>
+                    <input type="number" id="order-price" step="0.01">
+                </div>
+                <button id="submit-order-btn" class="execute-btn">Submit Order</button>
+                <div id="order-message"></div>
+            </div>
+        </div>
+
+        <div class="panel options-panel">
+            <div class="panel-header">
+                <h3>Options Chain</h3>
+                <input type="text" id="chain-expiry" placeholder="Expiry (YYYY-MM-DD)">
+                <button id="load-chain-btn">Load Chain</button>
+            </div>
+            <div class="table-container">
+                <table id="options-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Strike</th>
+                            <th>Bid</th>
+                            <th>Ask</th>
+                            <th>IV</th>
+                            <th>Delta</th>
+                            <th>Gamma</th>
+                            <th>Theta</th>
+                            <th>Vega</th>
+                        </tr>
+                    </thead>
+                    <tbody id="options-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

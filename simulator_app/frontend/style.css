@@ -1,0 +1,130 @@
+:root {
+    --bg-dark: #0a0e17;
+    --panel-bg: #131a26;
+    --text-main: #d1d4dc;
+    --accent: #2962ff;
+    --buy-green: #089981;
+    --sell-red: #f23645;
+    --border: #2a2e39;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: var(--panel-bg);
+    border-bottom: 1px solid var(--border);
+}
+
+h1, h3 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.dashboard {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.top-row {
+    display: flex;
+    gap: 20px;
+}
+
+.panel {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+}
+
+.chart-panel {
+    flex: 3;
+}
+
+.order-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.panel-header {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+input, select, button {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 4px;
+    outline: none;
+}
+
+button {
+    background-color: var(--accent);
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    border: none;
+}
+
+button:hover {
+    background-color: #1e4bd8;
+}
+
+.execute-btn {
+    padding: 12px;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+#tvchart {
+    width: 100%;
+    height: 400px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    color: #8c909e;
+    font-weight: 500;
+}
+
+.call-row { border-left: 3px solid var(--buy-green); }
+.put-row { border-left: 3px solid var(--sell-red); }
+
+#order-message {
+    font-size: 0.9em;
+    margin-top: 10px;
+    text-align: center;
+}
