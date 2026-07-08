@@ -241,6 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .value
                 .trim()
                 .toUpperCase();
+                console.log("Selected:", ticker);
 
             if (!ticker) {
 
