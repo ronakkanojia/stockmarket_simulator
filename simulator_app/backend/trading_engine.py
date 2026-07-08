@@ -88,9 +88,9 @@ def execute_order(ticker, strike, option_type, expiry, action, quantity, current
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', (ticker, strike, option_type, expiry, action, quantity, current_price))
     
-    # Save cash updates
-    update_cash(new_cash)
+    # Save cash updates after the order transaction is committed.
     conn.commit()
+    update_cash(new_cash)
     conn.close()
     
     return {

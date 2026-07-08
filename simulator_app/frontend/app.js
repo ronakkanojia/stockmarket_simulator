@@ -7,10 +7,17 @@ async function fetchPortfolio() {
     try {
         const res = await fetch(`${API_URL}/portfolio`);
         const data = await res.json();
-        
-        // Update Cash Balance
-        document.getElementById('cash-balance').innerText = `₹${data.cash.toLocaleString()}`;
-        
+
+        const cashBalance = document.getElementById('cash-balance');
+        const positionCount = document.getElementById('position-count');
+
+        if (cashBalance) {
+            cashBalance.innerText = `₹${data.cash.toLocaleString()}`;
+        }
+
+        if (positionCount) {
+            positionCount.innerText = Array.isArray(data.positions) ? data.positions.length : 0;
+        }
     } catch (error) {
         console.error("Error fetching portfolio:", error);
     }
@@ -22,7 +29,7 @@ async function fetchOptionsChain(ticker, expiry) {
     tbody.innerHTML = "<tr><td colspan='9' style='text-align:center;'>Loading data from yfinance...</td></tr>";
 
     try {
-        const res = await fetch(`${API_URL}/options/${ticker}?expiry=${expiry}`);
+        const res = await fetch(`${API_URL}/options/${encodeURIComponent(ticker)}?expiry=${expiry}`);
         if (!res.ok) throw new Error("Failed to fetch chain");
         
         const data = await res.json();

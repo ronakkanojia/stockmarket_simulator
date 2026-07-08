@@ -4,7 +4,8 @@ DB_NAME = "simulator.db"
 
 def init_db():
     """Initializes the database tables and seeds the initial virtual cash."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=30)
+    conn.execute("PRAGMA busy_timeout = 30000")
     cursor = conn.cursor()
     
     # Create User Table
@@ -53,7 +54,8 @@ def init_db():
     conn.close()
 
 def get_cash():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=30)
+    conn.execute("PRAGMA busy_timeout = 30000")
     cursor = conn.cursor()
     cursor.execute("SELECT cash FROM user WHERE id = 1")
     cash = cursor.fetchone()[0]
@@ -61,7 +63,8 @@ def get_cash():
     return cash
 
 def update_cash(new_cash):
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, timeout=30)
+    conn.execute("PRAGMA busy_timeout = 30000")
     cursor = conn.cursor()
     cursor.execute("UPDATE user SET cash = ? WHERE id = 1", (new_cash,))
     conn.commit()

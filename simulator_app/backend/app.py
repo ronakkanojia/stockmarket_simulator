@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import yfinance as yf
 
@@ -66,8 +67,13 @@ def historical_data(ticker: str, period: str = "3mo", interval: str = "1d"):
         # Format the data cleanly for a library like Lightweight Charts
         chart_data = []
         for date, row in hist.iterrows():
+            if interval.endswith(("m", "h")):
+                candle_time = int(date.timestamp())
+            else:
+                candle_time = date.strftime("%Y-%m-%d")
+
             chart_data.append({
-                "time": date.strftime("%Y-%m-%d"),
+                "time": candle_time,
                 "open": round(row["Open"], 2),
                 "high": round(row["High"], 2),
                 "low": round(row["Low"], 2),
@@ -77,15 +83,12 @@ def historical_data(ticker: str, period: str = "3mo", interval: str = "1d"):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch history: {str(e)}")
 
+app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
+
 
 # --- SERVER STARTUP ---
 # This block allows you to run the file directly using `python app.py`
 if __name__ == "__main__":
     import uvicorn
     # Use 0.0.0.0 so Codespaces can expose the port correctly
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
-
-if __name__ == "__main__":
-    import uvicorn
-    # 0.0.0.0 is required in Codespaces to expose the port outside the container
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

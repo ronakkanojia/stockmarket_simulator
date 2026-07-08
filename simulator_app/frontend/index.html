@@ -3,92 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Options Trading Simulator</title>
+    <title>Terminal Simulator | Options Desk</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-    <header>
-        <h1>Terminal Simulator</h1>
-        <div class="portfolio-summary">
-            <span>Buying Power: <strong id="cash-balance">₹--</strong></span>
-        </div>
-    </header>
-
-    <main class="dashboard">
-        <div class="top-row">
-            <div class="panel chart-panel">
-                <div class="panel-header">
-                    <input type="text" id="ticker-input" value="SPY" placeholder="Ticker (e.g., SPY)">
-                    <button id="load-chart-btn">Load Chart</button>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand-block">
+                <div class="brand-mark">T</div>
+                <div>
+                    <h1>Terminal Simulator</h1>
+                    <p>Paper trading desk</p>
                 </div>
-                <div id="tvchart"></div>
             </div>
 
-            <div class="panel order-panel">
-                <h3>Order Ticket</h3>
-                <div class="form-group">
-                    <label>Action</label>
-                    <select id="order-action">
-                        <option value="BUY">Buy</option>
-                        <option value="SELL">Sell (Write)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Type</label>
-                    <select id="order-type">
-                        <option value="CALL">Call</option>
-                        <option value="PUT">Put</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Strike</label>
-                    <input type="number" id="order-strike" placeholder="e.g., 500">
-                </div>
-                <div class="form-group">
-                    <label>Expiry (YYYY-MM-DD)</label>
-                    <input type="text" id="order-expiry" placeholder="2024-12-20">
-                </div>
-                <div class="form-group">
-                    <label>Quantity</label>
-                    <input type="number" id="order-qty" value="1" min="1">
-                </div>
-                <div class="form-group">
-                    <label>Premium Price (₹)</label>
-                    <input type="number" id="order-price" step="0.01">
-                </div>
-                <button id="submit-order-btn" class="execute-btn">Submit Order</button>
-                <div id="order-message"></div>
-            </div>
-        </div>
+            <nav class="top-nav">
+                <a class="active" href="#">Dashboard</a>
+                <a href="#">Options</a>
+                <a href="#">Portfolio</a>
+            </nav>
 
-        <div class="panel options-panel">
-            <div class="panel-header">
-                <h3>Options Chain</h3>
-                <input type="text" id="chain-expiry" placeholder="Expiry (YYYY-MM-DD)">
-                <button id="load-chain-btn">Load Chain</button>
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <span class="summary-label">Buying Power</span>
+                    <strong id="cash-balance">₹--</strong>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">Open Positions</span>
+                    <strong id="position-count">0</strong>
+                </div>
             </div>
-            <div class="table-container">
-                <table id="options-table">
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Strike</th>
-                            <th>Bid</th>
-                            <th>Ask</th>
-                            <th>IV</th>
-                            <th>Delta</th>
-                            <th>Gamma</th>
-                            <th>Theta</th>
-                            <th>Vega</th>
-                        </tr>
-                    </thead>
-                    <tbody id="options-body">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
+        </header>
+
+        <main class="dashboard">
+            <section class="hero-panel">
+                <div>
+                    <p class="eyebrow">Options desk</p>
+                    <h2>Trade with a clean, professional workflow.</h2>
+                    <p>Monitor quotes, review the chain, and execute orders from one streamlined console.</p>
+                </div>
+                <div class="hero-badges">
+                    <span>Live chain</span>
+                    <span>Quick order</span>
+                    <span>Paper trading</span>
+                </div>
+            </section>
+
+            <section class="workspace-grid">
+                <div class="panel chart-panel">
+                    <div class="panel-header">
+                        <div class="input-group">
+                            <select id="chart-timeframe">
+                                <option value="1D">1D</option>
+                                <option value="5m">5m</option>
+                                <option value="15m">15m</option>
+                            </select>
+                            <input type="text" id="ticker-input" value="SPY" placeholder="Ticker (e.g., SPY)">
+                            <button id="load-chart-btn">Load Chart</button>
+                        </div>
+                    </div>
+                    <div id="tvchart"></div>
+                </div>
+
+                <aside class="panel order-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">Order ticket</p>
+                            <h3>Place a trade</h3>
+                        </div>
+                        <span class="status-pill">Paper</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Action</label>
+                        <select id="order-action">
+                            <option value="BUY">Buy</option>
+                            <option value="SELL">Sell (Write)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="order-type">
+                            <option value="CALL">Call</option>
+                            <option value="PUT">Put</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Strike</label>
+                        <input type="number" id="order-strike" placeholder="e.g., 500">
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry (YYYY-MM-DD)</label>
+                        <input type="text" id="order-expiry" placeholder="2024-12-20">
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="order-qty" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Premium Price (₹)</label>
+                        <input type="number" id="order-price" step="0.01">
+                    </div>
+                    <button id="submit-order-btn" class="execute-btn">Submit Order</button>
+                    <div id="order-message"></div>
+                </aside>
+            </section>
+
+            <section class="panel options-panel">
+                <div class="panel-header options-header">
+                    <div>
+                        <p class="eyebrow">Market depth</p>
+                        <h3>Options chain</h3>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="chain-expiry" placeholder="Expiry (YYYY-MM-DD)">
+                        <button id="load-chain-btn">Load Chain</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="options-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Strike</th>
+                                <th>Bid</th>
+                                <th>Ask</th>
+                                <th>IV</th>
+                                <th>Delta</th>
+                                <th>Gamma</th>
+                                <th>Theta</th>
+                                <th>Vega</th>
+                            </tr>
+                        </thead>
+                        <tbody id="options-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
 
     <script src="chart.js"></script>
     <script src="app.js"></script>
