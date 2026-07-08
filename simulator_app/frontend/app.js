@@ -1,4 +1,4 @@
-// By leaving this blank, the browser automatically uses the current host 
+// By leaving this blank, the browser automatically uses the current host
 // (your Codespace URL running on Port 8000).
 const API_URL = "";
 
@@ -23,17 +23,63 @@ async function fetchPortfolio() {
     }
 }
 
-// --- 2. Fetch and Display Options Chain ---
+// --- 2. Fetch Valid Expiries for a Ticker and Populate the Dropdown ---
+async function fetchExpiries(ticker) {
+    const select = document.getElementById('chain-expiry');
+    select.innerHTML = "<option value=''>Loading expiries...</option>";
+    select.disabled = true;
+
+    try {
+        const res = await fetch(`${API_URL}/options/${encodeURIComponent(ticker)}/expiries`);
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.detail || "Failed to fetch expiries");
+        }
+
+        if (!data.expiries || data.expiries.length === 0) {
+            select.innerHTML = "<option value=''>No expiries found</option>";
+            return;
+        }
+
+        select.innerHTML = data.expiries
+            .map(date => `<option value="${date}">${date}</option>`)
+            .join("");
+        select.disabled = false;
+
+        // Auto-load the chain for the nearest expiry
+        fetchOptionsChain(ticker, data.expiries[0]);
+    } catch (error) {
+        console.error("Error fetching expiries:", error);
+        select.innerHTML = "<option value=''>Failed to load expiries</option>";
+    }
+}
+
+// --- 3. Fetch and Display Options Chain ---
 async function fetchOptionsChain(ticker, expiry) {
     const tbody = document.getElementById('options-body');
+
+    if (!expiry) {
+        tbody.innerHTML = "<tr><td colspan='9' style='text-align:center;'>Pick an expiry date above.</td></tr>";
+        return;
+    }
+
     tbody.innerHTML = "<tr><td colspan='9' style='text-align:center;'>Loading data from yfinance...</td></tr>";
 
     try {
         const res = await fetch(`${API_URL}/options/${encodeURIComponent(ticker)}?expiry=${expiry}`);
-        if (!res.ok) throw new Error("Failed to fetch chain");
-        
         const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.detail || "Failed to fetch chain");
+        }
+
         tbody.innerHTML = ""; // Clear loading message
+
+        if (data.calls.length === 0 && data.puts.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='9' style='text-align:center;'>No strikes returned for this expiry.</td></tr>";
+            return;
+        }
 
         // Render Calls
         data.calls.forEach(opt => appendOptionRow(opt, "CALL"));
@@ -42,7 +88,7 @@ async function fetchOptionsChain(ticker, expiry) {
 
     } catch (error) {
         console.error("Error:", error);
-        tbody.innerHTML = "<tr><td colspan='9' style='text-align:center; color: var(--sell-red);'>Failed to load options chain. Check ticker and valid expiry date.</td></tr>";
+        tbody.innerHTML = `<tr><td colspan='9' style='text-align:center; color: var(--sell-red);'>${error.message || "Failed to load options chain."}</td></tr>`;
     }
 }
 
@@ -50,7 +96,7 @@ function appendOptionRow(opt, type) {
     const tbody = document.getElementById('options-body');
     const tr = document.createElement('tr');
     tr.className = type === "CALL" ? "call-row" : "put-row";
-    
+
     // Helper function to handle clicks on the row to pre-fill the order ticket
     tr.onclick = () => {
         document.getElementById('order-type').value = type;
@@ -59,21 +105,27 @@ function appendOptionRow(opt, type) {
     };
     tr.style.cursor = "pointer";
 
+    // Greeks can be null now (illiquid strikes with no usable IV) — show a dash instead of crashing.
+    const fmt = (v, digits = 2) => (v === null || v === undefined) ? "—" : Number(v).toFixed(digits);
+    const ivDisplay = (opt.impliedVolatility === null || opt.impliedVolatility === undefined)
+        ? "—"
+        : `${(opt.impliedVolatility * 100).toFixed(1)}%`;
+
     tr.innerHTML = `
         <td style="text-align: left; font-weight: bold; color: ${type === 'CALL' ? 'var(--buy-green)' : 'var(--sell-red)'}">${type}</td>
         <td>${opt.strike}</td>
-        <td>${opt.bid.toFixed(2)}</td>
-        <td>${opt.ask.toFixed(2)}</td>
-        <td>${(opt.impliedVolatility * 100).toFixed(1)}%</td>
-        <td>${opt.delta}</td>
-        <td>${opt.gamma}</td>
-        <td>${opt.theta}</td>
-        <td>${opt.vega}</td>
+        <td>${fmt(opt.bid)}</td>
+        <td>${fmt(opt.ask)}</td>
+        <td>${ivDisplay}</td>
+        <td>${fmt(opt.delta, 3)}</td>
+        <td>${fmt(opt.gamma, 4)}</td>
+        <td>${fmt(opt.theta, 3)}</td>
+        <td>${fmt(opt.vega, 3)}</td>
     `;
     tbody.appendChild(tr);
 }
 
-/// --- 3. Execute Trade ---
+/// --- 4. Execute Trade ---
 async function submitTrade() {
     const msgDiv = document.getElementById("order-message");
 
@@ -84,7 +136,7 @@ async function submitTrade() {
         ticker: document.getElementById("ticker-input").value.toUpperCase(),
         strike: parseFloat(document.getElementById("order-strike").value),
         option_type: document.getElementById("order-type").value,
-        expiry: document.getElementById("order-expiry").value,
+        expiry: document.getElementById("chain-expiry").value,
         action: document.getElementById("order-action").value,
         quantity: parseInt(document.getElementById("order-qty").value),
         price: parseFloat(document.getElementById("order-price").value)
@@ -140,20 +192,26 @@ async function submitTrade() {
     }
 }
 
-// --- 4. Event Listeners ---
+// --- 5. Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
     fetchPortfolio();
 
     document.getElementById('load-chain-btn').addEventListener('click', () => {
         const ticker = document.getElementById('ticker-input').value.toUpperCase();
+        if (!ticker) {
+            alert("Please provide a ticker first.");
+            return;
+        }
+        fetchExpiries(ticker);
+    });
+
+    document.getElementById('chain-expiry').addEventListener('change', () => {
+        const ticker = document.getElementById('ticker-input').value.toUpperCase();
         const expiry = document.getElementById('chain-expiry').value;
-        if(ticker && expiry) {
+        if (ticker && expiry) {
             fetchOptionsChain(ticker, expiry);
-        } else {
-            alert("Please provide both Ticker and Expiry Date (YYYY-MM-DD)");
         }
     });
 
     document.getElementById('submit-order-btn').addEventListener('click', submitTrade);
 });
-
