@@ -73,40 +73,69 @@ function appendOptionRow(opt, type) {
     tbody.appendChild(tr);
 }
 
-// --- 3. Execute Trade ---
+/// --- 3. Execute Trade ---
 async function submitTrade() {
-    const msgDiv = document.getElementById('order-message');
+    const msgDiv = document.getElementById("order-message");
+
     msgDiv.innerText = "Processing...";
     msgDiv.style.color = "var(--text-main)";
 
     const payload = {
-        ticker: document.getElementById('ticker-input').value.toUpperCase(),
-        strike: parseFloat(document.getElementById('order-strike').value),
-        option_type: document.getElementById('order-type').value,
-        expiry: document.getElementById('order-expiry').value,
-        action: document.getElementById('order-action').value,
-        quantity: parseInt(document.getElementById('order-qty').value),
-        price: parseFloat(document.getElementById('order-price').value)
+        ticker: document.getElementById("ticker-input").value.toUpperCase(),
+        strike: parseFloat(document.getElementById("order-strike").value),
+        option_type: document.getElementById("order-type").value,
+        expiry: document.getElementById("order-expiry").value,
+        action: document.getElementById("order-action").value,
+        quantity: parseInt(document.getElementById("order-qty").value),
+        price: parseFloat(document.getElementById("order-price").value)
     };
+
+    console.log("Trade Payload:", payload);
 
     try {
         const res = await fetch(`${API_URL}/trade`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify(payload)
         });
-        
+
         const data = await res.json();
+
+        console.log("Status:", res.status);
+        console.log("Response:", data);
+
         if (res.ok) {
-            msgDiv.innerText = data.message;
+            msgDiv.innerText = data.message || "Trade executed successfully.";
             msgDiv.style.color = "var(--buy-green)";
-            fetchPortfolio(); // Refresh cash balance
-        } else {
-            msgDiv.innerText = data.detail;
-            msgDiv.style.color = "var(--sell-red)";
+            fetchPortfolio();
+            return;
         }
+
+        let errorMessage = "Unknown error";
+
+        if (typeof data.detail === "string") {
+            errorMessage = data.detail;
+        } else if (Array.isArray(data.detail)) {
+            errorMessage = data.detail
+                .map(err => `${err.loc.join(" → ")} : ${err.msg}`)
+                .join("\n");
+        } else if (data.detail) {
+            errorMessage = JSON.stringify(data.detail, null, 2);
+        } else {
+            errorMessage = JSON.stringify(data, null, 2);
+        }
+
+        msgDiv.innerText = errorMessage;
+        msgDiv.style.color = "var(--sell-red)";
+
     } catch (error) {
-        msgDiv.innerText = "Connection error.";
+        console.error(error);
+
+        msgDiv.innerText =
+            error.message || "Connection error. Check browser console.";
+
         msgDiv.style.color = "var(--sell-red)";
     }
 }
