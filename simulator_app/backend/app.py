@@ -2,12 +2,18 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-import yfinance as yf
 
 from market_data import (
     get_options_chain,
     get_available_expiries,
     OptionsDataError,
+)
+
+from nse_data import (
+    get_nse_quote,
+    get_nse_history,
+    normalize_symbol,
+    NSEDataError,
 )
 
 from trading_engine import (
@@ -77,17 +83,7 @@ def options_expiries(ticker: str):
 
     try:
 
-        symbol_map = {
-            "NIFTY": "^NSEI",
-            "BANKNIFTY": "^NSEBANK",
-            "^NSEI": "^NSEI",
-            "^NSEBANK": "^NSEBANK"
-        }
-
-        ticker = symbol_map.get(
-            ticker.upper(),
-            ticker.upper()
-        )
+        ticker = normalize_symbol(ticker)
 
         return {
             "ticker": ticker,
@@ -121,17 +117,7 @@ def options_chain(
 
     try:
 
-        symbol_map = {
-            "NIFTY": "^NSEI",
-            "BANKNIFTY": "^NSEBANK",
-            "^NSEI": "^NSEI",
-            "^NSEBANK": "^NSEBANK"
-        }
-
-        ticker = symbol_map.get(
-            ticker.upper(),
-            ticker.upper()
-        )
+        ticker = normalize_symbol(ticker)
 
         return get_options_chain(
             ticker,
@@ -151,7 +137,9 @@ def options_chain(
             status_code=400,
             detail=f"Failed to fetch options: {e}"
         )
-    # ==========================================
+
+
+# ==========================================
 # Execute Trade
 # ==========================================
 
@@ -178,6 +166,32 @@ def trade(req: TradeRequest):
 
 
 # ==========================================
+# Live Quote
+# ==========================================
+
+@app.get("/quote/{ticker}")
+def quote(ticker: str):
+
+    try:
+
+        return get_nse_quote(ticker)
+
+    except NSEDataError as e:
+
+        raise HTTPException(
+            status_code=404,
+            detail=str(e)
+        )
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
+# ==========================================
 # Historical Chart Data
 # ==========================================
 
@@ -187,67 +201,21 @@ def historical_data(
     period: str = "1mo",
     interval: str = "1d"
 ):
-    """
-    Returns OHLC data formatted for Lightweight Charts.
-    Supports aliases like NIFTY and BANKNIFTY.
-    """
 
     try:
 
-        symbol_map = {
-    "NIFTY": "^NSEI",
-    "^NSEI": "^NSEI",
-
-    "BANKNIFTY": "^NSEBANK",
-    "^NSEBANK": "^NSEBANK",
-
-    "FINNIFTY": "NIFTY_FIN_SERVICE.NS",
-
-    "MIDCPNIFTY": "NIFTY_MID_SELECT.NS"
-}
-        print("Yahoo Symbol:", ticker)
-
-        ticker = symbol_map.get(
-            ticker.upper(),
-            ticker.upper()
-        )
-
-        stock = yf.Ticker(ticker)
-
-        hist = stock.history(
+        return get_nse_history(
+            ticker,
             period=period,
-            interval=interval,
-            auto_adjust=False,
-            prepost=False
+            interval=interval
         )
 
-        if hist.empty:
-            raise HTTPException(
-                status_code=404,
-                detail=f"No historical data found for {ticker}"
-            )
+    except NSEDataError as e:
 
-        chart_data = []
-
-        for date, row in hist.iterrows():
-
-            if interval.endswith(("m", "h")):
-                candle_time = int(date.timestamp())
-            else:
-                candle_time = date.strftime("%Y-%m-%d")
-
-            chart_data.append({
-                "time": candle_time,
-                "open": round(float(row["Open"]), 2),
-                "high": round(float(row["High"]), 2),
-                "low": round(float(row["Low"]), 2),
-                "close": round(float(row["Close"]), 2)
-            })
-
-        return chart_data
-
-    except HTTPException:
-        raise
+        raise HTTPException(
+            status_code=404,
+            detail=str(e)
+        )
 
     except Exception as e:
 

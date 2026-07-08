@@ -73,6 +73,11 @@ def _to_nse_symbol(symbol: str) -> str:
     return f"{symbol}.NS"
 
 
+def normalize_symbol(symbol: str) -> str:
+    """Public alias for NSE symbol normalization used by the FastAPI app."""
+    return _to_nse_symbol(symbol)
+
+
 def _get_with_retry(fn, retries=3, delay=1.5):
     last_err = None
     for attempt in range(retries):
